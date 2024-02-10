@@ -1,6 +1,6 @@
 // Resgister user using name email password 
 import mongoose,{Schema} from "mongoose";
-
+import  jwt  from "jsonwebtoken";
 const UserSchema=new Schema({
     Name:{
         type:String,
@@ -26,6 +26,34 @@ const UserSchema=new Schema({
 },{
     timestamps:true
 })
+
+UserSchema.methods.generateAccessToken = function(){
+    return jwt.sign(
+        {
+            _id: this._id,
+            email: this.email,
+            username: this.username,
+            fullName: this.fullName
+        },
+        process.env.ACESS_TOKEN_KEY,
+        {
+            expiresIn: process.env.ACESS_TOKEN_EXPIRY
+        }
+    )
+}
+UserSchema.methods.generateRefreshToken = function(){
+    return jwt.sign(
+        {
+            _id: this._id,
+            
+        },
+        process.env.REFRESH_TOKEN_KEY,
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+        }
+    )
+}
+
 
 export const User=mongoose.model("User",UserSchema);
 
