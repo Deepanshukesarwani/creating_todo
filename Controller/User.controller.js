@@ -39,7 +39,7 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 // register user 
 const SignUP =asyncHandler(async (req,res)=>{
     const {Name,Email,Password}=req.body;
-    // console.log(Password);
+    // console.log(Password+"jai shree ram");
     if (
         [ Email, Name, Password].some((field) => field?.trim() === "")
     ) {
@@ -103,7 +103,7 @@ const login=asyncHandler(async (req,res)=>{
         {
             // token creation access and refresh token 
             const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id);
-
+             console.log(accessToken);
             const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
             const options = {
@@ -124,10 +124,6 @@ const login=asyncHandler(async (req,res)=>{
                     "User logged In Successfully"
                 )
             )
-        
-        
-
-
         }
     }
 
