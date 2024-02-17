@@ -97,9 +97,9 @@ const login=asyncHandler(async (req,res)=>{
         throw new ApiError(409,"User is not registered");
     }
     else{
-        const decryptPass= await bcrypt.compare(Password,user.Password);
+        const passMatched= await bcrypt.compare(Password,user.Password);
         // console.log(decryptPass);
-        if(decryptPass)
+        if(passMatched)
         {
             // token creation access and refresh token 
             const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id);
@@ -154,6 +154,54 @@ const logout=asyncHandler( async (req,res)=>{
 
 })
 
+// refreshToken 
+
+const refreshtoken=asyncHandler( async (req, res)=>{
+    const token= req.cookies.refreshToken || req.body.refreshToken;
+
+    if(!token)
+    {
+        throw ApiError(401,error.message || "invalid user");
+    }
+    try {
+        const decodedToken = jwt.verify(
+            token,
+            process.env.REFRESH_TOKEN_KEY
+        )
+    
+        const user = await User.findById(decodedToken?._id)
+    
+        if (!user) {
+            throw new ApiError(401, "Invalid refresh token")
+        }
+    
+        if (token !== user?.refreshtoken) {
+            throw new ApiError(401, "Refresh token is expired or used")
+            
+        }
+    
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+    
+        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+    
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newRefreshToken, options)
+        .json(
+            new ApiResponse(
+                200, 
+                {accessToken, refreshToken: newRefreshToken},
+                "Access token refreshed"
+            )
+        )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh token")
+    }
+})
 
 
 
@@ -169,4 +217,5 @@ const logout=asyncHandler( async (req,res)=>{
 
 
 
-export {SignUP,login,logout}
+
+export {SignUP,login,logout,refreshtoken}
